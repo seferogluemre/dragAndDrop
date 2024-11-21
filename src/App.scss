@@ -23,11 +23,24 @@ body{
     align-items: center;
     
     .list-item{
-        background-color: #B3C8CF;
+        background-color: #bfd1d6;
         box-shadow: 0 4px 6px #F1F0E8;
         border-radius: 10px;
         margin: 13px 0;
-        width: 35%;
-        padding: 8px 5px;
+        font-size: 23px !important;
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        width: 50%;
+        padding: 20px;
+
+        .order-content{
+            display: flex !important;
+            column-gap: 10px !important;
+
+            span{
+                cursor: pointer;
+            }
+        }
     }
 }

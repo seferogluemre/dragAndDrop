@@ -5,6 +5,9 @@ import { useState } from "react";
 import { DragDropContext, DropResult, Droppable, Draggable } from "react-beautiful-dnd";
 import { styled } from 'styled-components'
 import { nanoid } from "nanoid";
+import { MdDelete, MdEdit } from "react-icons/md";
+import 'react-responsive-modal/styles.css';
+import { Modal } from 'react-responsive-modal';
 
 interface Item {
   id: string;
@@ -41,6 +44,11 @@ function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [newItemContent, setNewItemContent] = useState<string>("");
 
+  const [open, setOpen] = useState(false);
+
+  const onCloseModal = () => setOpen(false);
+
+
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
@@ -54,16 +62,16 @@ function App() {
     setItems(reorderedItems);
   };
 
+  const openModel = (id: string, content: string) => {
+    setOpen(true)
+  }
 
-
-
-
+  const handleDeleteItem = (id: string) => {
+    setItems(items.filter((item) => item.id !== id))
+  }
 
   const handleAddItem = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (!newItemContent.trim()) return;
-
-
-
 
     const formattedName = newItemContent.trim();
 
@@ -73,15 +81,9 @@ function App() {
     }
     setItems([...items, newItem])
     setNewItemContent("")
-    console.log(items)
-
 
 
   }
-
-
-
-
 
 
   return (
@@ -100,8 +102,8 @@ function App() {
             <Droppable droppableId="droppable">
               {(provided) => (
                 <ul ref={provided.innerRef} className="list" {...provided.droppableProps}>
-                  {items.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                  {items.map(({ id, content }, index) => (
+                    <Draggable key={id} draggableId={id} index={index}>
                       {(provided) => (
                         <li
                           className="list-item"
@@ -109,7 +111,11 @@ function App() {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                         >
-                          {item.content}
+                          {content}
+                          <div className="order-content">
+                            <span><MdEdit className="fs-3" onClick={() => openModel(id, content)} /></span>
+                            <span><MdDelete className="fs-3" onClick={() => handleDeleteItem(id)} /></span>
+                          </div>
                         </li>
                       )}
                     </Draggable>
@@ -121,6 +127,14 @@ function App() {
           </DragDropContext>
         </Row>
       </Container>
+      <Modal open={open} onClose={onCloseModal} center>
+        <h2></h2>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+          pulvinar risus non risus hendrerit venenatis. Pellentesque sit amet
+          hendrerit risus, sed porttitor quam.
+        </p>
+      </Modal>
     </>
   );
 }
