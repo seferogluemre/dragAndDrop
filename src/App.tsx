@@ -16,7 +16,7 @@ interface Quote {
 // Styled Components
 const FormControl = styled.input`
     width: 100%;
-    padding: .375rem .75rem;
+    padding: .475rem 1.95rem;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
