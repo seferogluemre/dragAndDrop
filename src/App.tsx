@@ -1,8 +1,9 @@
-import {  Form,  Row } from "react-bootstrap";
+// eslint-disable-next-line no-unused-vars
+import { Container, Form, Row } from "react-bootstrap";
 import "./App.scss";
 import { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import {styled} from 'styled-components'
+import { DragDropContext, DropResult, Droppable, Draggable } from "react-beautiful-dnd";
+import { styled } from 'styled-components'
 import { nanoid } from "nanoid";
 
 interface Item {
@@ -11,7 +12,8 @@ interface Item {
 }
 
 
-const FormControl=styled.input`
+
+const FormControl = styled.input`
     width: 100%;
     padding: .375rem .75rem;
     font-size: 1rem;
@@ -23,7 +25,7 @@ const FormControl=styled.input`
     box-shadow: 0 6px 7px gray;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 `
-const AddBtn=styled.button`
+const AddBtn = styled.button`
     padding: 3px 26px;
     border: none;
     box-shadow: 0 3px 2px gray;
@@ -35,34 +37,44 @@ const AddBtn=styled.button`
 `
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [newItemContent, setNewItemContent] = useState<string>("");
 
-  const handleAddItem=()=>{
-    if(!newItemContent.trim())return;
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
 
-    const formattedName=newItemContent.trim();
+    // Eğer bırakılan hedef yoksa işlemi sonlandır
+    if (!destination) return;
 
-    const newItem:Item={
-      id:nanoid(7),
-      content:formattedName.toLowerCase(),
+    const reorderedItems = Array.from(items);
+    const [removed] = reorderedItems.splice(source.index, 1);
+    reorderedItems.splice(destination.index, 0, removed);
+
+    setItems(reorderedItems);
+  };
+
+
+
+
+
+
+  const handleAddItem = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (!newItemContent.trim()) return;
+
+
+
+
+    const formattedName = newItemContent.trim();
+
+    const newItem: Item = {
+      id: nanoid(7),
+      content: formattedName.toLowerCase(),
     }
-    setItems([...items,newItem])
+    setItems([...items, newItem])
+    setNewItemContent("")
     console.log(items)
-  
+
 
 
   }
@@ -77,34 +89,38 @@ function App() {
       <div className="container justify-content-center d-flex">
         <Row>
           <Form className="form">
-            <FormControl  value={newItemContent} onChange={(e)=>setNewItemContent(e.target.value)}  type="text"/>
+            <FormControl value={newItemContent} onChange={(e) => setNewItemContent(e.target.value)} type="text" />
             <AddBtn type="button" onClick={handleAddItem}>Ekle</AddBtn>
           </Form>
         </Row>
+      </div >
+      <Container>
         <Row>
-          
-           <Droppable droppableId="droppable">          
-            {(provided) => (
-              <ul ref={provided.innerRef} {...provided.droppableProps}>
-                {items.map((item, index) => (
-                  <Draggable key={item.id} draggableId={item.id} index={index}>
-                    {(provided) => (
-                      <li
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        {item.content}
-                      </li>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable> 
+          <DragDropContext onDragEnd={ondragend}>
+            <Droppable droppableId="droppable">
+              {(provided) => (
+                <ul ref={provided.innerRef} className="list" {...provided.droppableProps}>
+                  {items.map((item, index) => (
+                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                      {(provided) => (
+                        <li
+                          className="list-item"
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          {item.content}
+                        </li>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </ul>
+              )}
+            </Droppable>
+          </DragDropContext>
         </Row>
-      </div>
+      </Container>
     </>
   );
 }
