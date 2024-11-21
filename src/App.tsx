@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import { Container, Form, Row } from "react-bootstrap";
 import "./App.scss";
 import { useState } from "react";
@@ -9,13 +8,12 @@ import { MdDelete, MdEdit } from "react-icons/md";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 
-interface Item {
+interface Quote {
   id: string;
   content: string;
 }
 
-
-
+// Styled Components
 const FormControl = styled.input`
     width: 100%;
     padding: .375rem .75rem;
@@ -36,69 +34,93 @@ const AddBtn = styled.button`
     border-radius: 15px;
     font-weight: bold;
     background-color: #DEAA79;
-
 `
 
 
 function App() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<Quote[]>([]);
   const [newItemContent, setNewItemContent] = useState<string>("");
-
+  const [inputEdit, setInputEdit] = useState<string>("");
+  const [selectItemId, setSelectItemId] = useState<string>("");
   const [open, setOpen] = useState(false);
 
   const onCloseModal = () => setOpen(false);
 
+  // Bu fonksiyon Bir Quote Listesi alır ve alttaki parametreler hangi ögenin hangi pozisyondan bir pozisyona taşıncagını belli eder
+  const reorder = (list: Quote[], startIndex: number, endIndex: number): Quote[] => {
+    // Orjinal listeyi kopyalama
+    const result = Array.from(list);
+    // Başlangıçdaki ögeyi kaldırma
+    const [removed] = result.splice(startIndex, 1);
+    // Yeni pozisyon
+    result.splice(endIndex, 0, removed);
+    return result;
+  };
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
-
-    // Eğer bırakılan hedef yoksa işlemi sonlandır
     if (!destination) return;
-
-    const reorderedItems = Array.from(items);
-    const [removed] = reorderedItems.splice(source.index, 1);
-    reorderedItems.splice(destination.index, 0, removed);
-
+    const reorderedItems = reorder(items, source.index, destination.index);
     setItems(reorderedItems);
   };
 
+  // İçerik iconuna tıklama olduğunda modalı açıp içerği modaldaki inputa yansıtma
   const openModel = (id: string, content: string) => {
-    setOpen(true)
+    setOpen(true);
+    setInputEdit(content);
+    setSelectItemId(id);
   }
 
+  // Silme işlemi
   const handleDeleteItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id))
+    setItems(items.filter((item) => item.id !== id));
   }
 
+  // Ekleme işlemi
   const handleAddItem = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (!newItemContent.trim()) return;
-
     const formattedName = newItemContent.trim();
-
-    const newItem: Item = {
+    const newItem: Quote = {
       id: nanoid(7),
       content: formattedName.toLowerCase(),
     }
-    setItems([...items, newItem])
-    setNewItemContent("")
-
-
+    setItems([...items, newItem]);
+    setNewItemContent("");
   }
 
+  // Öğeyi güncelleme
+  const handleRenameItemContent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputEdit.trim()) return;
+
+    setItems(items.map(item =>
+      item.id === selectItemId
+        ? { ...item, content: inputEdit.trim() }
+        : item
+    ));
+
+    setOpen(false);
+    setInputEdit("");
+  }
 
   return (
     <>
       <div className="container justify-content-center d-flex">
         <Row>
-          <Form className="form">
-            <FormControl value={newItemContent} onChange={(e) => setNewItemContent(e.target.value)} type="text" />
+          <Form className="form" >
+            <FormControl
+              value={newItemContent}
+              onChange={(e) => setNewItemContent(e.target.value)}
+              placeholder="New Todo...."
+              type="text"
+            />
             <AddBtn type="button" onClick={handleAddItem}>Ekle</AddBtn>
           </Form>
         </Row>
-      </div >
+      </div>
       <Container>
         <Row>
-          <DragDropContext onDragEnd={ondragend}>
+          <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="droppable">
               {(provided) => (
                 <ul ref={provided.innerRef} className="list" {...provided.droppableProps}>
@@ -128,15 +150,18 @@ function App() {
         </Row>
       </Container>
       <Modal open={open} onClose={onCloseModal} center>
-        <h2></h2>
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
-          pulvinar risus non risus hendrerit venenatis. Pellentesque sit amet
-          hendrerit risus, sed porttitor quam.
-        </p>
+        <Form className="d-flex column-gap-4 p-2 m-3" onSubmit={handleRenameItemContent}>
+          <FormControl
+            value={inputEdit}
+            onChange={(e) => setInputEdit(e.target.value)}
+            placeholder="Edit Item..."
+            type="text"
+          />
+          <AddBtn onClick={handleRenameItemContent}>Edit</AddBtn>
+        </Form>
       </Modal>
     </>
   );
 }
 
-export default App;
+export default App; 
